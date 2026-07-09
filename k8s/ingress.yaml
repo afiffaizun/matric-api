@@ -1,0 +1,17 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: matric-api
+  namespace: matric-api
+spec:
+  rules:
+    - host: matric-api.local
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: matric-api
+                port:
+                  number: 8080
