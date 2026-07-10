@@ -1,0 +1,135 @@
+# Default values for matric-api
+
+# Replica count
+replicaCount: 3
+
+# Image configuration
+image:
+  repository: matric-api
+  tag: "latest"
+  pullPolicy: IfNotPresent
+
+# Image pull secrets (untuk private registry)
+imagePullSecrets: []
+
+# Override chart name
+nameOverride: ""
+fullnameOverride: ""
+
+# Service account (optional)
+serviceAccount:
+  create: false
+  name: ""
+
+# Pod annotations (untuk Prometheus scrape)
+podAnnotations:
+  prometheus.io/scrape: "true"
+  prometheus.io/port: "8080"
+  prometheus.io/path: "/metrics"
+
+# Pod security context
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 1000
+  fsGroup: 1000
+
+# Container security context
+securityContext:
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: true
+  capabilities:
+    drop:
+      - ALL
+
+# Service configuration
+service:
+  type: ClusterIP
+  port: 80
+  targetPort: 8080
+  nodePort: 30080  # Hanya dipakai kalau type: NodePort
+
+# Ingress configuration
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+    # kubernetes.io/ingress.class: traefik
+  hosts:
+    - host: matric-api.local
+      paths:
+        - path: /
+          pathType: Prefix
+  tls: []
+
+# Resource limits
+resources:
+  limits:
+    cpu: 200m
+    memory: 128Mi
+  requests:
+    cpu: 100m
+    memory: 64Mi
+
+# HTTPRoute (Gateway API)
+httpRoute:
+  enabled: false
+  annotations: {}
+  parentRefs:
+    - name: matric-api-gateway
+  hostnames: []
+  rules:
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /
+
+# Autoscaling (optional)
+autoscaling:
+  enabled: false
+  minReplicas: 3
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 80
+
+# Node selector
+nodeSelector: {}
+
+# Tolerations
+tolerations: []
+
+# Affinity
+affinity: {}
+
+# Application configuration (akan di-inject sebagai env vars)
+config:
+  PORT: "8080"
+  GIN_MODE: "release"
+  LOG_LEVEL: "info"
+
+# Health check probes
+probes:
+  liveness:
+    path: /health
+    initialDelaySeconds: 5
+    periodSeconds: 10
+    timeoutSeconds: 3
+    failureThreshold: 3
+  readiness:
+    path: /health
+    initialDelaySeconds: 3
+    periodSeconds: 5
+    timeoutSeconds: 2
+    failureThreshold: 3
+  startup:
+    path: /health
+    failureThreshold: 30
+    periodSeconds: 2
+
+# Deployment strategy
+strategy:
+  type: RollingUpdate
+  rollingUpdate:
+    maxSurge: 1
+    maxUnavailable: 0
+
+# Graceful shutdown
+terminationGracePeriodSeconds: 30

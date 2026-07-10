@@ -1,8 +1,0 @@
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: matric-api-config
-  namespace: matric-api
-data:
-  GIN_MODE: "release"
-  PORT: "8080"

@@ -1,0 +1,26 @@
+🎉 Matric API has been deployed!
+
+1. Get the application URL by running these commands:
+{{- if .Values.ingress.enabled }}
+  http://{{ (index .Values.ingress.hosts 0).host }}
+{{- else if contains "NodePort" .Values.service.type }}
+  export NODE_PORT=$(kubectl get --namespace {{ .Release.Namespace }} -o jsonpath="{.spec.ports[0].nodePort}" services {{ include "matric-api.fullname" . }})
+  export NODE_IP=$(kubectl get nodes --namespace {{ .Release.Namespace }} -o jsonpath="{.items[0].status.addresses[0].address}")
+  echo http://$NODE_IP:$NODE_PORT
+{{- else if contains "ClusterIP" .Values.service.type }}
+  kubectl --namespace {{ .Release.Namespace }} port-forward svc/{{ include "matric-api.fullname" . }} 8080:{{ .Values.service.port }}
+  echo "Visit http://127.0.0.1:8080"
+{{- end }}
+
+2. Check health:
+  curl http://<URL>/health
+
+3. View Prometheus metrics:
+  curl http://<URL>/metrics
+
+4. View logs:
+  kubectl logs -f --namespace {{ .Release.Namespace }} deployment/{{ include "matric-api.fullname" . }}
+
+Chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+App Version: {{ .Chart.AppVersion }}
+Release: {{ .Release.Name }}
