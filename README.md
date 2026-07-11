@@ -6,37 +6,47 @@ REST API sederhana untuk manajemen matrix, dibangun dengan Go dan Gin framework.
 
 - **Go** (1.25+)
 - **Gin** (HTTP framework)
+- **Prometheus** (metrics)
 - **Docker** / **Docker Compose**
 - **Kubernetes** (k3s)
-- **Kustomize** (opsional)
+- **Helm** (chart)
 
 ## Struktur Project
 
 ```
 .
-├── cmd/server/main.go            # Entry point server
-├── internal/handler/handlers.go  # HTTP handlers
-├── k8s/
-│   ├── namespace.yaml            # Namespace matric-api
-│   ├── configmap.yaml            # ConfigMap environment
-│   ├── deployment.yaml           # Deployment 3 replica
-│   ├── service.yaml              # Service ClusterIP
-│   ├── service-nodeport.yaml     # Service NodePort :30080
-│   └── ingress.yaml              # Ingress matric-api.local
-├── docker-compose.yml            # Docker Compose config
-├── Dockerfile                    # Multi-stage build
+├── cmd/server/main.go                 # Entry point server
+├── internal/
+│   ├── handler/handlers.go            # HTTP handlers
+│   └── middleware/metrics.go          # Prometheus metrics middleware
+├── helm/matric-api/                   # Helm chart
+│   ├── Chart.yaml
+│   ├── values.yaml
+│   └── templates/
+│       ├── _helpers.tpl
+│       ├── configmap.yaml
+│       ├── deployment.yaml
+│       ├── httproute.yaml
+│       ├── ingress.yaml
+│       ├── service.yaml
+│       ├── servicemonitor.yaml
+│       └── NOTES.txt
+├── docker-compose.yml                 # Docker Compose config
+├── Dockerfile                         # Multi-stage build
 ├── go.mod
-└── go.sum
+├── go.sum
+└── .gitignore
 ```
 
 ## API Endpoints
 
-| Method | Endpoint       | Description       |
-|--------|----------------|-------------------|
-| GET    | /              | Health check      |
-| GET    | /health        | Health check      |
-| GET    | /api/matrix    | Get matrix (TODO) |
-| POST   | /api/matrix    | Create matrix     |
+| Method | Endpoint       | Description              |
+|--------|----------------|--------------------------|
+| GET    | /              | Health check             |
+| GET    | /health        | Health check             |
+| GET    | /api/matrix    | Get matrix (TODO)        |
+| POST   | /api/matrix    | Create matrix            |
+| GET    | /metrics       | Prometheus metrics       |
 
 ## Cara Jalankan
 
@@ -59,23 +69,17 @@ docker build -t matric-api:latest .
 docker run -p 8080:8080 matric-api:latest
 ```
 
-### Kubernetes (k3s)
+### Helm (Kubernetes)
 
 ```bash
-# Load image ke containerd k3s
-docker save matric-api:latest | sudo k3s ctr images import -
+# Install
+helm install matric-api ./helm/matric-api -n matric-api --create-namespace
 
-# Apply semua resource
-kubectl apply -f k8s/namespace.yaml
-sleep 3
-kubectl apply -f k8s/
-```
+# Upgrade
+helm upgrade matric-api ./helm/matric-api -n matric-api
 
-### Test
-
-```bash
-curl http://localhost:8080/
-curl http://localhost:8080/health
+# Uninstall
+helm uninstall matric-api -n matric-api
 ```
 
 ## Akses via Kubernetes
@@ -87,9 +91,29 @@ curl http://localhost:8080/health
 | ingress         | matric-api.local | 80          |
 
 ```bash
-# Via NodePort
-curl http://localhost:30080/
+# Port-forward
+kubectl -n matric-api port-forward svc/matric-api 8080:80
 
-# Via Ingress
-curl -H "Host: matric-api.local" http://192.168.100.16/
+# Test
+curl http://localhost:8080/
+curl http://localhost:8080/health
+curl http://localhost:8080/metrics
+```
+
+## Prometheus Monitoring
+
+Prometheus metrics tersedia di endpoint `/metrics`:
+
+```bash
+curl http://localhost:8080/metrics | head -20
+```
+
+Untuk auto-discovery di Kubernetes, Helm chart menyertakan **ServiceMonitor** (perlu Prometheus Operator):
+
+```yaml
+# Diaktifkan via values.yaml
+serviceMonitor:
+  enabled: true
+  interval: 15s
+  path: /metrics
 ```

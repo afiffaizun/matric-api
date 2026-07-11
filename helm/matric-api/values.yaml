@@ -133,3 +133,13 @@ strategy:
 
 # Graceful shutdown
 terminationGracePeriodSeconds: 30
+
+
+# ServiceMonitor configuration (untuk Prometheus auto-discovery)
+serviceMonitor:
+  enabled: true
+  interval: 15s
+  scrapeTimeout: 10s
+  path: /metrics
+  labels:
+    release: prometheus

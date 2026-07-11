@@ -1,0 +1,9 @@
+# Generated Helm values (mungkin berisi secrets)
+values-*.yaml
+
+# Helm chart artifact
+*.tgz
+
+# Compiled binary
+server
+/tmp/server
