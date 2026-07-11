@@ -121,6 +121,32 @@ serviceMonitor:
   path: /metrics
 ```
 
+## Grafana
+
+### Install (jika belum ada)
+
+```bash
+helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+helm install monitoring prometheus-community/kube-prometheus-stack -n monitoring --create-namespace
+```
+
+### Akses Grafana
+
+```bash
+# Port-forward ke Grafana
+kubectl -n monitoring port-forward svc/monitoring-grafana 3000:80
+```
+
+Buka `http://localhost:3000` di browser.
+
+**Login:**
+- Username: `admin`
+- Password:
+
+```bash
+kubectl -n monitoring get secret monitoring-grafana -o jsonpath="{.data.admin-password}" | base64 -d
+```
+
 ## Grafana Dashboard
 
 Dashboard **matric-api Overview** tersedia di `helm/matric-api/dashboards/matric-api-overview.json`.
