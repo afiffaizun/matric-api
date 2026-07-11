@@ -143,3 +143,8 @@ serviceMonitor:
   path: /metrics
   labels:
     release: prometheus
+
+# Grafana dashboard provisioning
+dashboard:
+  enabled: true
+  folder: "matric-api"

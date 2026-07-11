@@ -22,9 +22,12 @@ REST API sederhana untuk manajemen matrix, dibangun dengan Go dan Gin framework.
 ├── helm/matric-api/                   # Helm chart
 │   ├── Chart.yaml
 │   ├── values.yaml
+│   ├── dashboards/
+│   │   └── matric-api-overview.json   # Grafana dashboard
 │   └── templates/
 │       ├── _helpers.tpl
 │       ├── configmap.yaml
+│       ├── dashboard.yaml             # Dashboard provisioning
 │       ├── deployment.yaml
 │       ├── httproute.yaml
 │       ├── ingress.yaml
@@ -116,4 +119,20 @@ serviceMonitor:
   enabled: true
   interval: 15s
   path: /metrics
+```
+
+## Grafana Dashboard
+
+Dashboard **matric-api Overview** tersedia di `helm/matric-api/dashboards/matric-api-overview.json`.
+
+### Import manual
+1. Buka Grafana → ☰ → **Dashboards** → **New** → **Import**
+2. Upload file `helm/matric-api/dashboards/matric-api-overview.json`
+3. Pilih datasource **Prometheus** → **Import**
+
+### Auto-provisioning (via Helm)
+Jika Grafana menggunakan k8s-sidecar dengan label `grafana_dashboard: "1"`, dashboard akan otomatis muncul setelah deploy Helm chart:
+
+```bash
+helm upgrade matric-api ./helm/matric-api -n matric-api
 ```

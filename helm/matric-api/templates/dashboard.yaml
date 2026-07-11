@@ -1,0 +1,15 @@
+{{- if .Values.dashboard.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "matric-api.fullname" . }}-dashboard
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "matric-api.labels" . | nindent 4 }}
+    grafana_dashboard: "1"
+  annotations:
+    grafana-folder: {{ .Values.dashboard.folder | quote }}
+data:
+  matric-api-overview.json: |
+    {{- .Files.Get "dashboards/matric-api-overview.json" | nindent 4 }}
+{{- end }}
